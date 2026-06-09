@@ -1,5 +1,3 @@
-from setuptools import setup, find_packages
-
 """
 To build:
     python setup.py build
@@ -13,12 +11,13 @@ import shutil
 import subprocess
 from distutils import log
 
-from setuptools import find_packages, setup, Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 
 def get_extra_cmake_options():
-    """read --clean, --no, --set, --compiler-flags, and -G options from the command line and add them as cmake switches.
+    """read --clean, --no, --set, --compiler-flags, and -G options from the command line
+    and add them as cmake switches.
     """
     _cmake_extra_options = []
     _clean_build_folder = False
@@ -139,10 +138,8 @@ setup(name='tobi',
       author_email='tobias.vetter@live.de',
       ext_modules=[CMakeExtension('_cpp_backend_pybind','src/backend/pybindings')],
       cmdclass=dict(build_ext=CMakeBuild),
-      package_dir={'': 'src',
-                   'tobi.frontend': 'src/frontend',
-                   'tobi.functions': 'src/frontend/functions'},
-      packages=find_packages(where='src') + ['tobi.frontend'] + ['tobi.functions'],
+      package_dir={'tobi': 'src/frontend'},
+      packages=['tobi', 'tobi.functions'],
       entry_points={
         'console_scripts': [
             'tobi=ex.frontend.main:main',
