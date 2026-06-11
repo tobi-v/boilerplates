@@ -5,15 +5,18 @@ To build and install:
     python setup.py install
 """
 import os
-import re
+from pathlib import Path
+from re import search
 import sys
-import shutil
+from shutil import copy2, copytree, rmtree
 import subprocess
 from distutils import log
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
+STORE_LIB = os.environ.get('STORE_LIB') == 'ON'
+USE_PREBUILT = os.environ.get('USE_PREBUILT') == 'ON'
 
 def get_extra_cmake_options():
     """read --clean, --no, --set, --compiler-flags, and -G options from the command line
@@ -64,6 +67,11 @@ class CMakeExtension(Extension):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
 
+class PrebuiltExtension(Extension):
+    def __init__(self, name, so_path):
+        super().__init__(name, sources=[])
+        self.sourcedir = os.path.abspath(so_path)
+
 def rmtree(name):
     """remove a directory and its subdirectories.
     """
@@ -77,7 +85,7 @@ def rmtree(name):
 
     if os.path.exists(name):
         log.info('Removing old directory {}'.format(name))
-        shutil.rmtree(name, ignore_errors=False, onerror=remove_read_only)
+        rmtree(name, ignore_errors=False, onerror=remove_read_only)
 
 class CMakeBuild(build_ext):
 
@@ -87,7 +95,7 @@ class CMakeBuild(build_ext):
         except:
             sys.stderr.write("\nERROR: CMake must be installed to build\n\n") 
             sys.exit(1)
-        return re.search(r'version\s*([\d.]+)', out.decode()).group(1)
+        return search(r'version\s*([\d.]+)', out.decode()).group(1)
 
     def run(self):
         self.test_cmake()
@@ -95,6 +103,16 @@ class CMakeBuild(build_ext):
         log.info('Building backend')
         for ext in self.extensions:
             self.build_extension(ext)
+
+    def store_lib(self):
+        """Makes delivering the package as sdist more convenient,
+        without disclosing the backend's source code.
+        """
+        so_file = next(Path(self.build_lib).glob("*.so"))
+        initpy = Path(self.build_lib) / "cpp_backend_lib" / "__init__.py"
+        os.makedirs(os.path.dirname('prebuilt/cpp_backend_lib/'), exist_ok=True)
+        copy2(str(initpy), 'prebuilt/cpp_backend_lib/')
+        copy2(str(so_file), 'prebuilt/')
 
     def make_build_folder(self):
         build_folder = os.path.abspath(self.build_temp)
@@ -124,6 +142,9 @@ class CMakeBuild(build_ext):
         sys.stdout.flush()
         subprocess.check_call(build_cmd, cwd=build_folder)
 
+        if STORE_LIB:
+            self.store_lib()
+
     def build_extension(self, ext):
         build_folder = self.make_build_folder()
 
@@ -132,19 +153,46 @@ class CMakeBuild(build_ext):
         print("Building cpp library from source")
         self.cmake_build(build_folder)
 
-setup(name='tobi',
-      version='1.0.0',
-      author='tobi-v',
-      author_email='tobias.vetter@live.de',
-      ext_modules=[CMakeExtension('_cpp_backend_pybind','src/backend/pybindings')],
-      cmdclass=dict(build_ext=CMakeBuild),
-      package_dir={'tobi': 'src/frontend'},
-      packages=['tobi', 'tobi.functions'],
-      entry_points={
-        'console_scripts': [
-            'tobi=ex.frontend.main:main',
-        ],
-      },
-      install_requires = [
-          'numpy >= 2.2.0'],
-      )
+class PreBuild(build_ext):
+    def run(self):
+        log.info('Using prebuilt library, skipping build step.')
+        ext = self.extensions[0]
+        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        print(f"Copying prebuilt library from {self.extensions[0].sourcedir} to {extdir}")
+        copytree(ext.sourcedir, extdir, dirs_exist_ok=True)
+
+
+if USE_PREBUILT:
+    setup(name='tobi',
+        version='1.0.0',
+        author='tobi-v',
+        author_email='tobias.vetter@live.de',
+        ext_modules=[PrebuiltExtension('_cpp_backend_pybind','prebuilt/')],
+        cmdclass=dict(build_ext=PreBuild),
+        package_dir={'tobi': 'src/frontend'},
+        packages=['tobi', 'tobi.functions'],
+        entry_points={
+            'console_scripts': [
+                'tobi=ex.frontend.main:main',
+            ],
+        },
+        install_requires = [
+            'numpy >= 2.2.0'],
+        )
+else:
+    setup(name='tobi',
+        version='1.0.0',
+        author='tobi-v',
+        author_email='tobias.vetter@live.de',
+        ext_modules=[CMakeExtension('_cpp_backend_pybind','src/backend/pybindings')],
+        cmdclass=dict(build_ext=CMakeBuild),
+        package_dir={'tobi': 'src/frontend'},
+        packages=['tobi', 'tobi.functions'],
+        entry_points={
+            'console_scripts': [
+                'tobi=ex.frontend.main:main',
+            ],
+        },
+        install_requires = [
+            'numpy >= 2.2.0'],
+        )

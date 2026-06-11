@@ -1,0 +1,12 @@
+# Include all necessary files for the C++ build
+include prebuilt/_cpp_backend_pybind.so
+include prebuilt/cpp_backend_lib/__init__.py
+
+#Include package metadata
+include setup.py
+include pyproject.toml
+#include README.md
+
+# Licenses
+#include THIRD_PARTY_NOTICES.txt
+#recursive-include licenses/ *.txt
