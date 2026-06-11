@@ -1,4 +1,5 @@
 #include "../cpp_code/cpp_example.hpp"
+#include "spdlog/spdlog.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -16,5 +17,6 @@ PYBIND11_MODULE(_cpp_backend_pybind, m) {
   ops.enable_enum_members_docstring();
   ops.disable_function_signatures();
 
+  spdlog::info("Initializing C++ backend pybind module");
   bind_adder(m);
 }
