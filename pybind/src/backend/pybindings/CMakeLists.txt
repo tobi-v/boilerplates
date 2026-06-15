@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-
+# TODO Rename to _cpp_backend_pybind 
 PROJECT(bindings LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -22,6 +22,7 @@ target_link_libraries(_cpp_backend_pybind PRIVATE
         cpp_backend_lib
         pybind11::module
         spdlog::spdlog_header_only)
+target_compile_definitions(_cpp_backend_pybind PRIVATE SPDLOG_USE_STD_FORMAT)
 
 if (CMAKE_LIBRARY_OUTPUT_DIRECTORY) 
   configure_file(${PROJECT_SOURCE_DIR}/__init__.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cpp_backend_lib/__init__.py COPYONLY)
