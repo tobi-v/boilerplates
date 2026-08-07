@@ -23,6 +23,7 @@ docker run -d \
   --network my-ansible-net \
   --ip 172.20.0.5 \
   -p 2222:22 \
+  -p 80:80
   debian-ansible-test
 ```
 

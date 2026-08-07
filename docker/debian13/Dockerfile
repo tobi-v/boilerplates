@@ -18,5 +18,8 @@ RUN sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config &&
 # Expose the SSH port
 EXPOSE 22
 
+# Expose the http port
+EXPOSE 80
+
 # Start the SSH server in the foreground
 CMD ["/usr/sbin/sshd", "-D"]
