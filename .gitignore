@@ -1,5 +1,11 @@
+# Sandboxes
+sandbox/
 tmp/
 temp/
 
+# Environment
 venv/
 .vscode/
+
+# Ansible
+vault.yml
