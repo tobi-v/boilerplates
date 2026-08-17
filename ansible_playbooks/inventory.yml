@@ -1,7 +1,0 @@
-myhosts:
-  hosts:
-    docky:
-      ansible_host: 172.20.0.5
-      http_port: 80
-      ansible_user: odradekk
-      ansible_password: "{{user_passwords.odradekk}}"

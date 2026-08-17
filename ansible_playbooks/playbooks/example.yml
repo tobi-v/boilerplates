@@ -1,0 +1,31 @@
+- name: My first play
+  hosts: docky
+  # remote_user: "{{user}}"
+
+  tasks:
+  - name: Ping my hosts
+    ansible.builtin.ping:
+
+  - name: Print message
+    ansible.builtin.debug:
+      msg: Hello world
+
+  - name: Remove python-is-python3
+    ansible.builtin.apt:
+      name: python-is-python3
+      state: absent
+    become: yes
+
+  - name: Reinstall python-is-python3
+    ansible.builtin.apt:
+      name: python-is-python3
+      state: present
+      update_cache: yes
+    become: yes
+  
+  - name: Execute python script
+    script: print.py
+    register: result
+  - name: Show script output
+    debug:
+      var: result.stdout_lines  # Prints the captured output to your screen

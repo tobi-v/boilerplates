@@ -1,0 +1,4 @@
+host_ip: <ip-address>
+user: <username>
+user_passwords:
+  <username>: <password>

@@ -1,0 +1,8 @@
+myhosts:
+  hosts:
+    docky:
+      ansible_host: "{{host_ip}}" # Taken from inventory/group_vars/myhosts/vault.yml
+      http_port: 80
+      ansible_user: "{{user}}" # Taken from inventory/group_vars/myhosts/vault.yml
+      ansible_password: "{{user_passwords.odradekk}}" # Taken from inventory/group_vars/myhosts/vault.yml
+      ansible_become_pass: "{{user_passwords.root}}"
